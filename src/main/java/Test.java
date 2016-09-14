@@ -10,25 +10,20 @@ public class Test {
         Simpleflie drone = new Simpleflie(80);
         while(!drone.isConnected());
         
-
+        int max = 20000;
+        int min = 10000;
+        int thrust = min;
+        int step = 1000;
         drone.setValues("thrust", "0");
         
-        for(int i = 10; i < 20; i++){
-            drone.setValues("thrust", "" + i * 1000);
+        for(int i = min; i < max + min; i += step){
+            drone.setValues("thrust", "" + thrust);
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-        
-        for(int i = 20; i > 10; i--){
-            drone.setValues("thrust", "" + i * 1000);
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            thrust += step * ((i >= max) ? -1 : 1);
         }
         
         drone.setValues("thrust", "0");
