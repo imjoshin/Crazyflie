@@ -88,10 +88,15 @@ public class Simpleflie {
 		System.out.println("Connection to " + connectionData);
 	}
 	
+	public void disconnect(){
+		mCrazyflie.disconnect();
+	}
+	
 	public void setValues(String ... args){
-		if(mCrazyflie == null || !mCrazyflie.isConnected()) return;
+		if(!mCrazyflie.isConnected()) {System.out.println("NOT CONNECTED"); return;}
 		
 		for(int i = 0; i < args.length; i += 2){
+			System.out.println("Setting " + args[i] + " to " + args[i + 1]);
 			if(args[i].toLowerCase().compareTo("thrust") == 0){
 				thrust = Long.parseLong(args[i + 1]);
 			}else if(args[i].toLowerCase().compareTo("pitch") == 0){
@@ -108,5 +113,9 @@ public class Simpleflie {
 			mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
 		}
 		
+	}
+	
+	public boolean isConnected(){
+		return mCrazyflie != null && mCrazyflie.isConnected();
 	}
 }

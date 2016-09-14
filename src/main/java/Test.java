@@ -1,18 +1,4 @@
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import Simpleflie.Simpleflie;
-import se.bitcraze.crazyflie.lib.crazyflie.Crazyflie;
-import se.bitcraze.crazyflie.lib.crazyflie.CrazyflieTest;
-import se.bitcraze.crazyflie.lib.crazyradio.ConnectionData;
-import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
-import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
-import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 
 public class Test {
@@ -22,13 +8,31 @@ public class Test {
 	public static void main(String[] args) {
 		System.out.println("Starting test");
         Simpleflie drone = new Simpleflie(80);
-        for(int i = 0; i < 20; i++){
+        while(!drone.isConnected());
+        
+
+        drone.setValues("thrust", "0");
+        
+        for(int i = 10; i < 20; i++){
             drone.setValues("thrust", "" + i * 1000);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         
-        for(int i = 20; i > 0; i--){
+        for(int i = 20; i > 10; i--){
             drone.setValues("thrust", "" + i * 1000);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        
+        drone.setValues("thrust", "0");
+        drone.disconnect();
 	}
 
 }
