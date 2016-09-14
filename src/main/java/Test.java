@@ -5,6 +5,8 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import Simpleflie.Simpleflie;
 import se.bitcraze.crazyflie.lib.crazyflie.Crazyflie;
 import se.bitcraze.crazyflie.lib.crazyflie.CrazyflieTest;
 import se.bitcraze.crazyflie.lib.crazyradio.ConnectionData;
@@ -14,18 +16,18 @@ import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 
 public class Test {
-	public static final Logger log = LoggerFactory
-			.getLogger(CrazyflieTest.class);
-    private static UsbLinkJava mUsbLinkJava;
+	//public static final Logger log = LoggerFactory.getLogger(CrazyflieTest.class);
+    //private static UsbLinkJava mUsbLinkJava;
 	
 	public static void main(String[] args) {
-        System.out.println("Scanning interfaces for Crazyflies...");
-        RadioDriver radioDriver = new RadioDriver(new UsbLinkJava());
-        List<ConnectionData> foundCrazyflies = radioDriver.scanInterface();
-        radioDriver.disconnect();
-        System.out.println("Crazyflies found:");
-        for (ConnectionData connectionData : foundCrazyflies) {
-            System.out.println(connectionData);
+		System.out.println("Starting test");
+        Simpleflie drone = new Simpleflie(80);
+        for(int i = 0; i < 20; i++){
+            drone.setValues("thrust", "" + i * 1000);
+        }
+        
+        for(int i = 20; i > 0; i--){
+            drone.setValues("thrust", "" + i * 1000);
         }
 	}
 

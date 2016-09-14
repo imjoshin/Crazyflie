@@ -70,19 +70,19 @@ public class ConsoleExample {
         // cflib.crtp.init_drivers(enable_debug_driver=False)
 
         // Scan for Crazyflies and use the first one found
-//        System.out.println("Scanning interfaces for Crazyflies...");
-//
-//        RadioDriver radioDriver = new RadioDriver(new UsbLinkJava());
-//        List<ConnectionData> foundCrazyflies = radioDriver.scanInterface();
-//        radioDriver.disconnect();
-//
-//        System.out.println("Crazyflies found:");
-//        for (ConnectionData connectionData : foundCrazyflies) {
-//            System.out.println(connectionData);
-//        }
+        System.out.println("Scanning interfaces for Crazyflies...");
 
-        List<ConnectionData> foundCrazyflies = new ArrayList<ConnectionData>();
-        foundCrazyflies.add(new ConnectionData(80, 0));
+        RadioDriver radioDriver = new RadioDriver(new UsbLinkJava());
+        List<ConnectionData> foundCrazyflies = radioDriver.scanInterface();
+        radioDriver.disconnect();
+
+        System.out.println("Crazyflies found:");
+        for (ConnectionData connectionData : foundCrazyflies) {
+            System.out.println(connectionData);
+        }
+
+//        List<ConnectionData> foundCrazyflies = new ArrayList<ConnectionData>();
+//        foundCrazyflies.add(new ConnectionData(80, 0));
 
         if (foundCrazyflies.size() > 0) {
             ConsoleExample consoleExample = new ConsoleExample(foundCrazyflies.get(0));

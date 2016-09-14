@@ -7,11 +7,17 @@ import se.bitcraze.crazyflie.lib.crazyflie.Crazyflie;
 import se.bitcraze.crazyflie.lib.crazyradio.ConnectionData;
 import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
 import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
+import se.bitcraze.crazyflie.lib.crtp.CommanderPacket;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 public class Simpleflie {
 
 	private Crazyflie mCrazyflie;
+	private long thrust = 0;
+	private float pitch = 0;
+	private float roll = 0;
+	private float yaw = 0;
+	
 	public Simpleflie(){
 		// Scan for Crazyflies and use the first one found
 		System.out.println("Scanning interfaces for Crazyflies...");
@@ -25,10 +31,18 @@ public class Simpleflie {
 			System.out.println(connectionData);
 		}
 		
-		Simpleflie(foundCrazyflies.get(0));
+		if(foundCrazyflies.size() > 0){
+			init(foundCrazyflies.get(0).getChannel());
+		}else{
+			System.out.println("No Crazyflies found.");
+		}
 	}
 
 	public Simpleflie(int channel){
+		init(channel);
+	}
+	
+	private void init(int channel){
 		mCrazyflie = new Crazyflie(new RadioDriver(new UsbLinkJava()));
 		mCrazyflie.getDriver().addConnectionListener(new ConnectionAdapter() {
 			/*
@@ -72,5 +86,27 @@ public class Simpleflie {
 		mCrazyflie.connect(connectionData);
 
 		System.out.println("Connection to " + connectionData);
+	}
+	
+	public void setValues(String ... args){
+		if(mCrazyflie == null || !mCrazyflie.isConnected()) return;
+		
+		for(int i = 0; i < args.length; i += 2){
+			if(args[i].toLowerCase().compareTo("thrust") == 0){
+				thrust = Long.parseLong(args[i + 1]);
+			}else if(args[i].toLowerCase().compareTo("pitch") == 0){
+				pitch = Long.parseLong(args[i + 1]);
+			}else if(args[i].toLowerCase().compareTo("roll") == 0){
+				roll = Long.parseLong(args[i + 1]);
+			}else if(args[i].toLowerCase().compareTo("yaw") == 0){
+				yaw = Long.parseLong(args[i + 1]);
+			}else{
+				System.out.println("Invalid value name: " + args[i]);
+				return;
+			}
+			
+			mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
+		}
+		
 	}
 }
