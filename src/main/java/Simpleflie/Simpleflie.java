@@ -96,7 +96,6 @@ public class Simpleflie {
 		if(!mCrazyflie.isConnected()) {System.out.println("NOT CONNECTED"); return;}
 		
 		for(int i = 0; i < args.length; i += 2){
-			System.out.println("Setting " + args[i] + " to " + args[i + 1]);
 			if(args[i].toLowerCase().compareTo("thrust") == 0){
 				thrust = Long.parseLong(args[i + 1]);
 			}else if(args[i].toLowerCase().compareTo("pitch") == 0){
@@ -110,6 +109,7 @@ public class Simpleflie {
 				return;
 			}
 			
+			System.out.println("Sending packet...\troll: " + roll + "\tpitch: " + pitch + "\tyaw: " + yaw + "\tthrust: " + thrust);
 			mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
 		}
 		
