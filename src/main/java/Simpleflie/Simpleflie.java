@@ -1,5 +1,7 @@
 package Simpleflie;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import se.bitcraze.crazyflie.lib.crazyflie.ConnectionAdapter;
@@ -8,6 +10,9 @@ import se.bitcraze.crazyflie.lib.crazyradio.ConnectionData;
 import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
 import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
 import se.bitcraze.crazyflie.lib.crtp.CommanderPacket;
+import se.bitcraze.crazyflie.lib.param.Param;
+import se.bitcraze.crazyflie.lib.param.ParamListener;
+import se.bitcraze.crazyflie.lib.toc.Toc;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 public class Simpleflie {
@@ -17,6 +22,9 @@ public class Simpleflie {
 	private float pitch = 0;
 	private float roll = 0;
 	private float yaw = 0;
+
+    List<String> mParamCheckList = new ArrayList<String>();
+    List<String> mParamGroups = new ArrayList<String>();
 	
 	public Simpleflie(){
 		// Scan for Crazyflies and use the first one found
@@ -92,6 +100,24 @@ public class Simpleflie {
 		mCrazyflie.disconnect();
 	}
 	
+	public void startMonitor(){
+		/*
+		if(isConnected()){
+			mCrazyflie.getParam().addParamListener(new ParamListener("pid_rate", "pitch_kd") {
+	            @Override
+	            public void updated(String name, Number value) {
+	                System.out.println("Readback: " + name + "=" + value);
+	
+	                // End the example by closing the link (will cause the app to quit)
+	                if ((Float) value == 0.00f) {
+	                    mCrazyflie.disconnect();
+	                }
+	            }
+	        });
+		}
+		*/
+	}
+	
 	public void setValues(String ... args){
 		if(!mCrazyflie.isConnected()) {System.out.println("NOT CONNECTED"); return;}
 		
@@ -115,7 +141,24 @@ public class Simpleflie {
 		
 	}
 	
+	public Number getParam(String parameterName) {
+		if(isConnected()) {
+            Param mParam = mCrazyflie.getParam();
+            mParam.requestParamUpdate(parameterName);
+			return mParam.getValue(parameterName);
+			//return mCrazyflie.getParam().getValue(parameterName);
+        
+            //Param mParam = mCrazyflie.getParam();
+            //mParam.requestParamUpdate(parameterName);
+            //String[] paraName = parameterName.split("\\.");
+            //return mParam.getValuesMap().get(paraName[0]).get(paraName[1]);
+        } else {
+            return null;
+        }
+    }
+	
 	public boolean isConnected(){
 		return mCrazyflie != null && mCrazyflie.isConnected();
 	}
+
 }
