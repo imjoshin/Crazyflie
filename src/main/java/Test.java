@@ -11,18 +11,20 @@ public class Test {
         while(!drone.isConnected());
         /*
         drone.startMonitor();
+        */
         
         for(int i = 0; i < 100; i++){
-        	System.out.println(drone.getParam("pid_rate.roll_kd").floatValue());
+        	System.out.println(i);
         	try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        */
         
         
+        
+        /*
         int max = 38000;
         int min = 10000;
         int thrust = 0;
@@ -53,18 +55,6 @@ public class Test {
             i += ((thrust < 30000) ? .3 : .05) * sign;
         }
         
-        /*
-        int min = 10000;
-        int step = 4000;
-        for(int i = min; i < max * 2 - min; i += step){
-            drone.setValues("thrust", "" + thrust);
-            try {
-                Thread.sleep(265);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            thrust += step * ((i >= max) ? -1 : 1);
-        }
         */
         drone.setValues("thrust", "0");
         

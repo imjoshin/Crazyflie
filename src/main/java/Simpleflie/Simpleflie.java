@@ -3,6 +3,8 @@ package Simpleflie;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import se.bitcraze.crazyflie.lib.crazyflie.ConnectionAdapter;
 import se.bitcraze.crazyflie.lib.crazyflie.Crazyflie;
@@ -10,6 +12,9 @@ import se.bitcraze.crazyflie.lib.crazyradio.ConnectionData;
 import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
 import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
 import se.bitcraze.crazyflie.lib.crtp.CommanderPacket;
+import se.bitcraze.crazyflie.lib.log.LogConfig;
+import se.bitcraze.crazyflie.lib.log.LogListener;
+import se.bitcraze.crazyflie.lib.log.Logg;
 import se.bitcraze.crazyflie.lib.param.Param;
 import se.bitcraze.crazyflie.lib.param.ParamListener;
 import se.bitcraze.crazyflie.lib.toc.Toc;
@@ -52,6 +57,8 @@ public class Simpleflie {
 	
 	private void init(int channel){
 		mCrazyflie = new Crazyflie(new RadioDriver(new UsbLinkJava()));
+		
+		
 		mCrazyflie.getDriver().addConnectionListener(new ConnectionAdapter() {
 			/*
 			 * This callback is called from the Crazyflie API when a Crazyflie
@@ -64,6 +71,37 @@ public class Simpleflie {
 				// Do not hijack the calling thread!
 				//                Thread(target=self._ramp_motors).start()
 				//DO WHAT NOW
+				
+				Logg logging = mCrazyflie.getLogg();
+			    logging.addLogListener(new LogListener() {
+
+					@Override
+					public void logConfigAdded(LogConfig arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void logConfigError(LogConfig arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void logConfigStarted(LogConfig arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void logDataReceived(LogConfig arg0,
+							Map<String, Number> arg1, int arg2) {
+						// TODO Auto-generated method stub
+						
+					}
+
+			      
+			    });
 			}
 
 			/*
@@ -94,6 +132,7 @@ public class Simpleflie {
 		mCrazyflie.connect(connectionData);
 
 		System.out.println("Connection to " + connectionData);
+		
 	}
 	
 	public void disconnect(){
