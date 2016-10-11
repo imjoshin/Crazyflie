@@ -2,6 +2,7 @@ package Simpleflie;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,18 +19,22 @@ import se.bitcraze.crazyflie.lib.log.Logg;
 import se.bitcraze.crazyflie.lib.param.Param;
 import se.bitcraze.crazyflie.lib.param.ParamListener;
 import se.bitcraze.crazyflie.lib.toc.Toc;
+import se.bitcraze.crazyflie.lib.toc.VariableType;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 public class Simpleflie {
 
 	private Crazyflie mCrazyflie;
-	private long thrust = 0;
+	private long thrust = 0;		
 	private float pitch = 0;
 	private float roll = 0;
 	private float yaw = 0;
 
-    List<String> mParamCheckList = new ArrayList<String>();
-    List<String> mParamGroups = new ArrayList<String>();
+	private Logg logg;
+	private LogConfig logConfig;
+	
+	private boolean safetyTrigger = true;
+	private Map<String, Number> params = new HashMap<String, Number>();
 	
 	public Simpleflie(){
 		// Scan for Crazyflies and use the first one found
@@ -60,68 +65,79 @@ public class Simpleflie {
 		
 		
 		mCrazyflie.getDriver().addConnectionListener(new ConnectionAdapter() {
-			/*
-			 * This callback is called from the Crazyflie API when a Crazyflie
-			 * has been connected and the TOCs have been downloaded.
-			 */
+			
+			// This callback is called form the Crazyflie API when a Crazyflie has been connected 
+			// and the TOCs have been downloaded.
+			public void setupFinished(String connectionInfo){
+				logConfig = new LogConfig("stabalizer", 10);
+				logConfig.addVariable("stabilizer.pitch", VariableType.FLOAT);
+				logConfig.addVariable("stabilizer.roll", VariableType.FLOAT);
+				logConfig.addVariable("stabilizer.yaw", VariableType.FLOAT);
+				logConfig.addVariable("gyro.x", VariableType.FLOAT);
+				logConfig.addVariable("gyro.y", VariableType.FLOAT);
+				logConfig.addVariable("gyro.z", VariableType.FLOAT);
+				
+		        logg = mCrazyflie.getLogg();
+
+		        if (logg != null) {
+		            logg.addConfig(logConfig);
+
+		            logg.addLogListener(new LogListener() {
+
+		                public void logConfigAdded(LogConfig logConfig) {
+		                    String msg = "";
+		                    if(logConfig.isAdded()) {
+		                        msg = "' added";
+		                    } else {
+		                        msg = "' deleted";
+		                    }
+		                    System.out.println("LogConfig '" + logConfig.getName() + msg);
+		                }
+
+		                public void logConfigError(LogConfig logConfig) {
+		                    System.err.println("Error when logging '" + logConfig.getName() + "': " + logConfig.getErrNo());
+		                }
+
+		                public void logConfigStarted(LogConfig logConfig) {
+		                    String msg = "";
+		                    if(logConfig.isStarted()) {
+		                        msg = "' started";
+		                    } else {
+		                        msg = "' stopped";
+		                    }
+		                    System.out.println("LogConfig '" + logConfig.getName() + msg);
+		                }
+
+		                public void logDataReceived(LogConfig logConfig, Map<String, Number> data, int timestamp) {
+	                    	params.putAll(data);
+		                }
+
+		            });
+
+		            // Start the logging
+		            logg.start(logConfig);
+		        }else{
+		        	System.out.println("Logg was null");
+		        }
+			}
+			
+			// This callback is called from the Crazyflie API when a Crazyflie has been connected 
+			// and the TOCs have been downloaded.
 			public void connected(String connectionInfo) {
 				System.out.println("CONNECTED to " +  connectionInfo);
-
-				// Start a separate thread to do the motor test.
-				// Do not hijack the calling thread!
-				//                Thread(target=self._ramp_motors).start()
-				//DO WHAT NOW
-				
-				Logg logging = mCrazyflie.getLogg();
-			    logging.addLogListener(new LogListener() {
-
-					@Override
-					public void logConfigAdded(LogConfig arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void logConfigError(LogConfig arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void logConfigStarted(LogConfig arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void logDataReceived(LogConfig arg0,
-							Map<String, Number> arg1, int arg2) {
-						// TODO Auto-generated method stub
-						
-					}
-
-			      
-			    });
 			}
 
-			/*
-			 * Callback when the Crazyflie is disconnected (called in all cases)
-			 */
+			//Callback when the Crazyflie is disconnected (called in all cases)
 			public void disconnected(String connectionInfo) {
 				System.out.println("DISCONNECTED from " +  connectionInfo);
 			}
 
-			/*
-			 * Callback when connection initial connection fails (i.e no Crazyflie at the specified address)
-			 */
+			//Callback when connection initial connection fails (i.e no Crazyflie at the specified address)
 			public void connectionFailed(String connectionInfo, String msg) {
 				System.out.println("CONNECTION FAILED: " +  connectionInfo + " Msg: " + msg);
 			}
 
-			/*
-			 * Callback when disconnected after a connection has been made (i.e Crazyflie moves out of range)
-			 *
-			 */
+			// Callback when disconnected after a connection has been made (i.e Crazyflie moves out of range)
 			public void connectionLost(String connectionInfo) {
 				System.out.println("CONNECTION LOST: " +  connectionInfo);
 			}
@@ -137,67 +153,86 @@ public class Simpleflie {
 	
 	public void disconnect(){
 		mCrazyflie.disconnect();
+		logg.stop(logConfig);
+        logg.delete(logConfig);
 	}
 	
-	public void startMonitor(){
-		/*
-		if(isConnected()){
-			mCrazyflie.getParam().addParamListener(new ParamListener("pid_rate", "pitch_kd") {
-	            @Override
-	            public void updated(String name, Number value) {
-	                System.out.println("Readback: " + name + "=" + value);
-	
-	                // End the example by closing the link (will cause the app to quit)
-	                if ((Float) value == 0.00f) {
-	                    mCrazyflie.disconnect();
-	                }
-	            }
-	        });
+	public Number getValue(String paramName){
+		if(paramName.compareTo("pitch") == 0 || paramName.compareTo("roll") == 0 || paramName.compareTo("yaw") == 0){
+			paramName = "stabilizer." + paramName;
 		}
-		*/
+		
+		if(params.containsKey(paramName))
+			return params.get(paramName);
+		else
+			return null;
 	}
 	
 	public void setValues(String ... args){
 		if(!mCrazyflie.isConnected()) {System.out.println("NOT CONNECTED"); return;}
 		
 		for(int i = 0; i < args.length; i += 2){
-			if(args[i].toLowerCase().compareTo("thrust") == 0){
-				thrust = Long.parseLong(args[i + 1]);
-			}else if(args[i].toLowerCase().compareTo("pitch") == 0){
-				pitch = Long.parseLong(args[i + 1]);
-			}else if(args[i].toLowerCase().compareTo("roll") == 0){
-				roll = Long.parseLong(args[i + 1]);
-			}else if(args[i].toLowerCase().compareTo("yaw") == 0){
-				yaw = Long.parseLong(args[i + 1]);
+			String param = args[i];
+			String value = args[i + 1];
+			if(param.toLowerCase().compareTo("thrust") == 0){
+				if(value.charAt(0) == '+'){
+					thrust += Long.parseLong(value.substring(1));
+				}else if(value.charAt(0) == '-'){
+					thrust -= Long.parseLong(value.substring(1));
+				}else{
+					thrust = Long.parseLong(value);
+				}
+			}else if(param.toLowerCase().compareTo("pitch") == 0){
+				if(value.charAt(0) == '+'){
+					pitch = getValue("pitch").floatValue() + Float.parseFloat(value.substring(1));
+				}else if(value.charAt(0) == '-'){
+					pitch = getValue("pitch").floatValue() + Float.parseFloat(value.substring(1));
+				}else{
+					pitch = Float.parseFloat(value);
+				}
+			}else if(param.toLowerCase().compareTo("roll") == 0){
+				if(value.charAt(0) == '+'){
+					roll = getValue("roll").floatValue() + Float.parseFloat(value.substring(1));
+				}else if(value.charAt(0) == '-'){
+					roll = getValue("roll").floatValue() - Float.parseFloat(value.substring(1));
+				}else{
+					roll = Float.parseFloat(value);
+				}
+			}else if(param.toLowerCase().compareTo("yaw") == 0){
+				if(value.charAt(0) == '+'){
+					yaw = getValue("yaw").floatValue() + Float.parseFloat(value.substring(1));
+				}else if(value.charAt(0) == '-'){
+					yaw = getValue("yaw").floatValue() - Float.parseFloat(value.substring(1));
+				}else{
+					yaw = Float.parseFloat(value);
+				}
 			}else{
-				System.out.println("Invalid value name: " + args[i]);
+				System.out.println("Invalid value name: " + param);
 				return;
 			}
-			
-			System.out.println("Sending packet...\troll: " + roll + "\tpitch: " + pitch + "\tyaw: " + yaw + "\tthrust: " + thrust);
-			mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
 		}
+		
+		if(safetyTrigger && (Math.abs(pitch) > 30 || Math.abs(roll) > 30)){
+			thrust = 0;
+			pitch = 0;
+			roll = 0;
+		}
+		
+		System.out.println("Sending packet...\troll: " + roll + "\tpitch: " + pitch + "\tyaw: " + yaw + "\tthrust: " + thrust);
+		mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
 		
 	}
 	
-	public Number getParam(String parameterName) {
-		if(isConnected()) {
-            Param mParam = mCrazyflie.getParam();
-            mParam.requestParamUpdate(parameterName);
-			return mParam.getValue(parameterName);
-			//return mCrazyflie.getParam().getValue(parameterName);
-        
-            //Param mParam = mCrazyflie.getParam();
-            //mParam.requestParamUpdate(parameterName);
-            //String[] paraName = parameterName.split("\\.");
-            //return mParam.getValuesMap().get(paraName[0]).get(paraName[1]);
-        } else {
-            return null;
-        }
-    }
-	
 	public boolean isConnected(){
 		return mCrazyflie != null && mCrazyflie.isConnected();
+	}
+	
+	public String toString(){
+		String ret = "";
+		for (Entry<String, Number> entry : params.entrySet()) {
+            ret += entry.getKey() + ": " + entry.getValue() + "\n";
+        }
+		return ret;
 	}
 
 }

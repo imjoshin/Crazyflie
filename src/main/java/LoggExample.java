@@ -68,8 +68,10 @@ public class LoggExample extends ConnectionAdapter{
         System.out.println("Setup finished for " + connectionInfo);
 
         // The definition of the logconfig can be made before the setup is finished
-        final LogConfig lcBattery = new LogConfig("Battery", 1000);
-        lcBattery.addVariable("stabilizer.pitch", VariableType.FLOAT);
+        final LogConfig stabalizer = new LogConfig("stabalizer", 10);
+        stabalizer.addVariable("stabilizer.pitch", VariableType.FLOAT);
+        stabalizer.addVariable("stabilizer.roll", VariableType.FLOAT);
+        stabalizer.addVariable("stabilizer.yaw", VariableType.FLOAT);
 
         /**
          *  Adding the configuration cannot be done until a Crazyflie is connected and
@@ -81,7 +83,7 @@ public class LoggExample extends ConnectionAdapter{
 
         if (logg != null) {
             //self._cf.log.add_config(self._lg_stab)
-            logg.addConfig(lcBattery);
+            logg.addConfig(stabalizer);
 
             /*
             # This callback will receive the data
@@ -118,7 +120,7 @@ public class LoggExample extends ConnectionAdapter{
 
                 public void logDataReceived(LogConfig logConfig, Map<String, Number> data, int timestamp) {
                     System.out.println("LogConfig '" + logConfig.getName()  + "', timestamp: " + timestamp + ", data : ");
-                    // TODO sort?
+                    
                     for (Entry<String, Number> entry : data.entrySet()) {
                         System.out.println("\t Name: " + entry.getKey() + ", data: " + entry.getValue());
                     }
@@ -127,17 +129,7 @@ public class LoggExample extends ConnectionAdapter{
             });
 
             // Start the logging
-            logg.start(lcBattery);
-
-            /*
-            try:
-                [...]
-            except KeyError as e:
-                print "Could not start log configuration," \
-                      "{} not found in TOC".format(str(e))
-            except AttributeError:
-                print "Could not add Stabilizer log config, bad configuration."
-             */
+            logg.start(stabalizer);
 
             // Start a timer to disconnect after 5s
             Timer timer = new Timer();
@@ -145,8 +137,8 @@ public class LoggExample extends ConnectionAdapter{
 
                 @Override
                 public void run() {
-                    logg.stop(lcBattery);
-                    logg.delete(lcBattery);
+                    logg.stop(stabalizer);
+                    logg.delete(stabalizer);
                 }
 
             }, 5000);
