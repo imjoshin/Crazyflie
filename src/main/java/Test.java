@@ -7,17 +7,16 @@ public class Test {
 	
 	public static void main(String[] args) {
 		System.out.println("Starting test");
-        Simpleflie drone = new Simpleflie(80);
-        while(!drone.isConnected());    
+        Simpleflie drone = new Simpleflie(80);       
         
         
-        
-        int max = 43000;
+        int max = 30000;
         int min = 10000;
         int thrust = 0;
         drone.setValues("thrust", "0");
+        drone.setFailSafe(30);
         //if(drone.getValue("yaw") == null) System.out.println("NULL");
-        double startingYaw = 160;
+        double startingYaw = 999;
         
         double i = 1.1;
         int sign = 1;
@@ -31,7 +30,7 @@ public class Test {
             }
             
             try {
-                Thread.sleep(100);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -41,32 +40,29 @@ public class Test {
             double pitch = drone.getValue("pitch").doubleValue();
             if(pitch > 1){
             	pitch -= .2;
-            	//drone.setValues("pitch", "-.2");
             }else if(pitch < -1){
             	pitch += .2;
-            	//drone.setValues("pitch", "+.2");
             }
             
             double roll = drone.getValue("roll").doubleValue();
             if(roll > 1){
             	roll -= .2;
-            	//drone.setValues("roll", "-.2");
             }else if(roll < -1){
             	roll += .2;
-            	//drone.setValues("roll", "+.2");
             }
             
             double yaw = drone.getValue("yaw").doubleValue();
-            if(yaw > startingYaw + 1){
-            	yaw -= .2;
-            	//drone.setValues("yaw", "-.2");
-            }else if(yaw < startingYaw - 1){
-            	yaw += .2;
-            	//drone.setValues("yaw", "+.2");
+            if(startingYaw == 999){
+            	System.out.println("Set startingYaw to " + yaw);
+            	startingYaw = yaw;
+            }
+            if(yaw > startingYaw + 10){
+            	yaw -= 5;
+            }else if(yaw < startingYaw - 10){
+            	yaw += 5;
             }
 
-            //drone.setValues("pitch", "" + pitch, "roll", "" + roll, "yaw", "" + yaw);
-            drone.setValues("thrust", "" + thrust, "pitch", "" + pitch, "roll", "" + roll, "yaw", "" + yaw);
+            drone.setValues("thrust", "" + thrust, "pitch", "" + pitch, "roll", "" + roll);//, "yaw", "" + yaw);
         }
         
         

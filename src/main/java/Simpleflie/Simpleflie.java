@@ -33,6 +33,9 @@ public class Simpleflie {
 	private Logg logg;
 	private LogConfig logConfig;
 	
+	private boolean showPackets = false;
+	private int failSafe = 30;
+	
 	private boolean safetyTrigger = true;
 	private Map<String, Number> params = new HashMap<String, Number>();
 	
@@ -91,7 +94,7 @@ public class Simpleflie {
 		                    } else {
 		                        msg = "' deleted";
 		                    }
-		                    System.out.println("LogConfig '" + logConfig.getName() + msg);
+		                    //System.out.println("LogConfig '" + logConfig.getName() + msg);
 		                }
 
 		                public void logConfigError(LogConfig logConfig) {
@@ -105,7 +108,7 @@ public class Simpleflie {
 		                    } else {
 		                        msg = "' stopped";
 		                    }
-		                    System.out.println("LogConfig '" + logConfig.getName() + msg);
+		                    //System.out.println("LogConfig '" + logConfig.getName() + msg);
 		                }
 
 		                public void logDataReceived(LogConfig logConfig, Map<String, Number> data, int timestamp) {
@@ -147,7 +150,9 @@ public class Simpleflie {
 		ConnectionData connectionData = new ConnectionData(channel, Crazyradio.DR_250KPS);        
 		mCrazyflie.connect(connectionData);
 
-		System.out.println("Connection to " + connectionData);
+		System.out.println("CONNECTING TO " + connectionData);
+		
+		while(!isConnected()); 
 		
 	}
 	
@@ -207,24 +212,32 @@ public class Simpleflie {
 					yaw = Float.parseFloat(value);
 				}
 			}else{
-				System.out.println("Invalid value name: " + param);
+				System.err.println("Invalid value name: " + param);
 				return;
 			}
 		}
 		
-		if(safetyTrigger && (Math.abs(pitch) > 30 || Math.abs(roll) > 30)){
+		if(failSafe != -1 && safetyTrigger && (Math.abs(pitch) > failSafe || Math.abs(roll) > failSafe)){
 			thrust = 0;
 			pitch = 0;
 			roll = 0;
 		}
 		
-		System.out.println("Sending packet...\troll: " + roll + "\tpitch: " + pitch + "\tyaw: " + yaw + "\tthrust: " + thrust);
+		if(showPackets) System.out.println("Sending packet...\troll: " + roll + "\tpitch: " + pitch + "\tyaw: " + yaw + "\tthrust: " + thrust);
 		mCrazyflie.sendPacket(new CommanderPacket(roll, pitch, yaw, (char) thrust));
 		
 	}
 	
 	public boolean isConnected(){
 		return mCrazyflie != null && mCrazyflie.isConnected();
+	}
+	
+	public void setShowPackets(boolean showPackets){
+		this.showPackets = showPackets;
+	}
+	
+	public void setFailSafe(int failSafe){
+		this.failSafe = failSafe;
 	}
 	
 	public String toString(){
