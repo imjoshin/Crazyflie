@@ -154,6 +154,12 @@ public class Simpleflie {
 		
 		while(!isConnected()); 
 		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void disconnect(){
@@ -169,8 +175,10 @@ public class Simpleflie {
 		
 		if(params.containsKey(paramName))
 			return params.get(paramName);
-		else
+		else{
+			System.err.println("Invalid value name: " + paramName);
 			return null;
+		}
 	}
 	
 	public void setValues(String ... args){
