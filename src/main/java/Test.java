@@ -2,8 +2,6 @@ import Simpleflie.Simpleflie;
 
 
 public class Test {
-	//public static final Logger log = LoggerFactory.getLogger(CrazyflieTest.class);
-	//private static UsbLinkJava mUsbLinkJava;
 
 	public static void main(String[] args) {
 		System.out.println("Starting test");

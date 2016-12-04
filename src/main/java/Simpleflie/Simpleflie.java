@@ -29,6 +29,7 @@ public class Simpleflie {
 	private float pitch = 0;
 	private float roll = 0;
 	private float yaw = 0;
+	private int port;
 
 	private Logg logg;
 	private LogConfig logConfig;
@@ -39,6 +40,13 @@ public class Simpleflie {
 	private boolean safetyTrigger = true;
 	private Map<String, Number> params = new HashMap<String, Number>();
 	
+	/**
+	 * Creates a new Simpleflie object and connects to the first Crazyflie
+	 * interface port found. This will wait until it connects successfully,
+	 * unless no Crazyflie interfaces were found. 
+	 * 
+	 * @author Josh Johnson (jocjohns@mtu.edu)
+	 */
 	public Simpleflie(){
 		// Scan for Crazyflies and use the first one found
 		System.out.println("Scanning interfaces for Crazyflies...");
@@ -58,12 +66,21 @@ public class Simpleflie {
 			System.out.println("No Crazyflies found.");
 		}
 	}
-
+	
+	/**
+	 * Creates a new Simpleflie object and connects to the port specified. 
+	 * This will wait until it connects successfully. The commonly used port
+	 * is port 80.
+	 *
+	 * @param channel an integer specifying which port to connect to
+	 * @author Josh Johnson (jocjohns@mtu.edu)
+	 */
 	public Simpleflie(int channel){
 		init(channel);
 	}
 	
 	private void init(int channel){
+		this.port = channel;
 		mCrazyflie = new Crazyflie(new RadioDriver(new UsbLinkJava()));
 		
 		
@@ -162,12 +179,25 @@ public class Simpleflie {
 		
 	}
 	
+	/**
+	 * Disconnects the Crazyflie and deletes all necessary logs.
+	 */
 	public void disconnect(){
 		mCrazyflie.disconnect();
 		logg.stop(logConfig);
         logg.delete(logConfig);
 	}
 	
+	/**
+	 * Returns a Number object from the given parameter name.
+	 * If the parameter name is not valid, null is returned.
+	 * <p>
+	 * Logged parameters include pitch, roll, yaw, gyro.x,
+	 * gryo.y, and gyro.z
+	 * 
+	 * @param paramName the name of the parameter to obtain
+	 * @returns a Number object with representing the paramName
+	 */
 	public Number getValue(String paramName){
 		if(paramName.compareTo("pitch") == 0 || paramName.compareTo("roll") == 0 || paramName.compareTo("yaw") == 0){
 			paramName = "stabilizer." + paramName;
@@ -181,6 +211,20 @@ public class Simpleflie {
 		}
 	}
 	
+	/**
+	 * Sets multiple values of the Crazyflie. Valid parameters are
+	 * pitch, roll, yaw, and thrust. When calling setValues(), all
+	 * parameters must be strings (including values), with the values
+	 * being supplied after the parameter name. Not all parameters are
+	 * needed to be set on each call.
+	 * <p>
+	 * Example usage: drone.setValues("thrust", "" + 15000, "pitch", "" + 2.5, "roll", "" + 1.3);
+	 * <p>
+	 * setValues() will pass a thrust of 0 to the Crazyflie if the pitch 
+	 * or roll surpasses the fail safe ({@link #setFailSafe}).
+	 * 
+	 * @param args parameter names and values
+	 */
 	public void setValues(String ... args){
 		if(!mCrazyflie.isConnected()) {System.out.println("NOT CONNECTED"); return;}
 		
@@ -236,20 +280,47 @@ public class Simpleflie {
 		
 	}
 	
+	/**
+	 * Determines if the Simpleflie object is connected to
+	 * a Crazyflie.
+	 * 
+	 * @returns a boolean stating if the Crazyflie is connected
+	 */
 	public boolean isConnected(){
 		return mCrazyflie != null && mCrazyflie.isConnected();
 	}
 	
+	/**
+	 * Set whether or not packets sent to the Crazyflie should
+	 * be shown in the terminal. This is mostly for debugging.
+	 * 
+	 * @param showPackets whether or not packets are printed to the terminal
+	 */
 	public void setShowPackets(boolean showPackets){
 		this.showPackets = showPackets;
 	}
 	
+	/**
+	 * Set the fail safe of the Crazyflie. If the absolute value of the 
+	 * pitch or roll surpasses the fail safe, a thrust of 0 will be sent 
+	 * on each {@link setValues} until it is safe. Setting the fail safe 
+	 * to -1 will disable this check.
+	 * <p>
+	 * Default value is 30.
+	 * 
+	 * @param failSafe the fail safe amount
+	 */
 	public void setFailSafe(int failSafe){
 		this.failSafe = failSafe;
 	}
 	
+	/**
+	 * Returns a string representation of the Simpleflie object.
+	 * This is represented by an output of all parameters being
+	 * logged, as well as the port of the Crazyflie.
+	 */
 	public String toString(){
-		String ret = "";
+		String ret = "port: " + port + "\n";
 		for (Entry<String, Number> entry : params.entrySet()) {
             ret += entry.getKey() + ": " + entry.getValue() + "\n";
         }
